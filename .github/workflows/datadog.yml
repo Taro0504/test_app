@@ -1,0 +1,38 @@
+# Publish source maps to Datadog to enable error tracking.
+# cf. https://docs.datadoghq.com/ja/real_user_monitoring/guide/upload-javascript-source-maps/?tab=webpackjs
+
+name: Deploy to Datadog
+
+on:
+  push:
+    branches:
+      - main
+
+jobs:
+  deployment:
+    runs-on: ubuntu-latest
+
+    env:
+      REACT_APP_DATADOG_VERSION: ${{ github.sha }}
+      DATADOG_API_KEY: ${{ secrets.DATADOG_API_KEY }}
+
+    if: github.event.pull_request.merged == true
+
+    steps:
+      - uses: actions/checkout@v3
+      - name: Initialize
+
+      - name: Run Build
+        env:
+          # If CI = true , the warning is treated as an error, so set false.
+          CI: false
+          NODE_OPTIONS: ""
+        run: npm run build
+
+      - name: Publish to Datadog from master branch
+        if: github.ref == 'refs/heads/main'
+        run: |
+          npx @datadog/datadog-ci sourcemaps upload build \
+            --service='test_app' \
+            --release-version='${{ github.sha }}' \
+            --minified-path-prefix='http://localhost:5174/'
