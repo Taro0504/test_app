@@ -19,9 +19,6 @@ jobs:
     if: github.event.pull_request.merged == true
 
     steps:
-      - uses: actions/checkout@v3
-      - name: Initialize
-
       - name: Run Build
         env:
           # If CI = true , the warning is treated as an error, so set false.
@@ -32,7 +29,7 @@ jobs:
       - name: Publish to Datadog from master branch
         if: github.ref == 'refs/heads/main'
         run: |
-          npx @datadog/datadog-ci sourcemaps upload build \
+          npx @datadog/datadog-ci sourcemaps upload ./dist \
             --service='test_app' \
             --release-version='${{ github.sha }}' \
             --minified-path-prefix='http://localhost:5174/'
